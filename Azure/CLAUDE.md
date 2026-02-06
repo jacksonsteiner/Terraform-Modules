@@ -227,8 +227,7 @@ version = "~> x.x"
 
 **Registry and documentation:**
 - Terraform Registry: https://registry.terraform.io/namespaces/Azure
-- AVM Module Index: https://azure.github.io/Azure-Verified-Modules/indexes/terraform/
-- GitHub Organization: https://github.com/Azure/terraform-azurerm-modules
+- Terraform Resource Modules: https://azure.github.io/Azure-Verified-Modules/indexes/terraform/tf-resource-modules/
 
 ### AVM Module Sources
 
