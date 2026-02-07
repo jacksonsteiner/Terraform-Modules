@@ -8,6 +8,8 @@ This module creates Azure Private DNS Zones with virtual network links using the
 - Configures DNS records (A, AAAA, CNAME, MX, PTR, SRV, TXT)
 - Links Private DNS Zones to Virtual Networks
 - Supports auto-registration
+- Supports resource locks (CanNotDelete/ReadOnly)
+- Supports RBAC role assignments
 - Secure defaults (telemetry disabled)
 
 ## Usage

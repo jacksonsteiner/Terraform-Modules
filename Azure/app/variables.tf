@@ -15,7 +15,7 @@ variable "applications" {
       known_client_applications      = optional(set(string))
       mapped_claims_enabled          = optional(bool)
       requested_access_token_version = optional(number, 2)
-      oauth2_permission_scopes       = optional(map(object({
+      oauth2_permission_scopes = optional(map(object({
         id                         = string
         value                      = string
         admin_consent_display_name = optional(string)
@@ -39,12 +39,12 @@ variable "applications" {
     }))
 
     # Optional - Service Principal
-    create_service_principal         = optional(bool, true)
-    service_principal_description    = optional(string)
-    service_principal_enabled        = optional(bool, true)
-    app_role_assignment_required     = optional(bool, false)
-    service_principal_owners         = optional(set(string))
-    service_principal_tags           = optional(set(string))
+    create_service_principal      = optional(bool, true)
+    service_principal_description = optional(string)
+    service_principal_enabled     = optional(bool, true)
+    app_role_assignment_required  = optional(bool, false)
+    service_principal_owners      = optional(set(string))
+    service_principal_tags        = optional(set(string))
 
     # Optional - Federated Identity Credentials
     federated_identity_credentials = optional(map(object({

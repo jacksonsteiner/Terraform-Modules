@@ -18,7 +18,7 @@ resource "azuread_application" "this" {
   description                    = try(each.value.description, null)
   group_membership_claims        = try(each.value.group_membership_claims, null)
   identifier_uris                = try(each.value.identifier_uris, null)
-  sign_in_audience              = try(each.value.sign_in_audience, "AzureADMyOrg")
+  sign_in_audience               = try(each.value.sign_in_audience, "AzureADMyOrg")
   fallback_public_client_enabled = try(each.value.fallback_public_client_enabled, false)
   owners                         = try(each.value.owners, [data.azurerm_client_config.current.object_id])
   tags                           = try(each.value.app_tags, null)

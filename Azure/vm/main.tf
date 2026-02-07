@@ -1,37 +1,54 @@
-module "vm_foundation" {
-  source  = "Azure/avm-res-compute-virtualmachine/azurerm"
-  version = "0.20.0"
+locals {
+  suffix = join("-", compact([
+    var.project_name, var.environment, var.location_short
+  ]))
 
-  for_each = var.vm_foundation
+  names = {
+    vm  = "vm-${local.suffix}"
+    nic = "nic-${local.suffix}"
+  }
+
+  tags = {
+    project     = var.project_name
+    environment = var.environment
+    location    = var.location
+  }
+}
+
+module "virtual_machines" {
+  source  = "Azure/avm-res-compute-virtualmachine/azurerm"
+  version = "~> 0.20"
+
+  for_each = var.virtual_machines
 
   # Required
   name                = coalesce(try(each.value.name, null), "${local.names.vm}-${each.key}")
   location            = coalesce(try(each.value.location, null), var.location)
-  resource_group_name = module.rg_foundation[each.value.rg_key].name
+  resource_group_name = each.value.resource_group_name
   zone                = try(each.value.zone, null)
 
-  # Required - OS Configuration
-  os_type  = each.value.os_type                                       # "Windows" or "Linux"
-  sku_size = coalesce(try(each.value.sku_size, null), "Standard_B2s") # Cost-efficient default
+  # OS Configuration - Linux is more secure default
+  os_type  = coalesce(try(each.value.os_type, null), "Linux")
+  sku_size = coalesce(try(each.value.sku_size, null), "Standard_D2s_v3")
 
   # Optional - Telemetry
   enable_telemetry = coalesce(try(each.value.enable_telemetry, null), false)
 
-  # Network Interfaces
+  # Network Interfaces - complex passthrough with default naming
   network_interfaces = {
     for k, v in each.value.network_interfaces : k => {
-      name = coalesce(try(v.name, null), "nic-${each.key}-${k}")
+      name = coalesce(try(v.name, null), "${local.names.nic}-${each.key}-${k}")
 
       ip_configurations = {
         for ipk, ipv in v.ip_configurations : ipk => {
           name                          = coalesce(try(ipv.name, null), ipk)
-          private_ip_subnet_resource_id = coalesce(try(ipv.private_ip_subnet_resource_id, null), try(ipv.subnet_key, null) != null ? module.vnet_foundation[ipv.vnet_key].subnets[ipv.subnet_key].resource_id : null)
+          private_ip_subnet_resource_id = ipv.private_ip_subnet_resource_id
           private_ip_address            = try(ipv.private_ip_address, null)
           private_ip_address_allocation = try(ipv.private_ip_address_allocation, "Dynamic")
           is_primary_ipconfiguration    = try(ipv.is_primary_ipconfiguration, null)
 
-          # Public IP Configuration
-          create_public_ip_address                       = try(ipv.create_public_ip_address, false) # Secure default - no public IP
+          # Public IP - disabled by default (secure)
+          create_public_ip_address                       = try(ipv.create_public_ip_address, false)
           public_ip_address_name                         = try(ipv.public_ip_address_name, null)
           public_ip_address_resource_id                  = try(ipv.public_ip_address_resource_id, null)
           public_ip_address_allocation                   = try(ipv.public_ip_address_allocation, "Static")
@@ -57,19 +74,17 @@ module "vm_foundation" {
       }
 
       # NIC-level settings
-      accelerated_networking_enabled = try(v.accelerated_networking_enabled, true)
-      dns_servers                    = try(v.dns_servers, null)
-      edge_zone                      = try(v.edge_zone, null)
-      internal_dns_name_label        = try(v.internal_dns_name_label, null)
-      ip_forwarding_enabled          = try(v.ip_forwarding_enabled, false)
-      lock                           = try(v.lock, null)
-      network_security_group_resource_id = try(v.network_security_group_resource_id, null) != null ? v.network_security_group_resource_id : (
-        try(v.nsg_key, null) != null ? module.nsg_foundation[v.nsg_key].resource_id : null
-      )
-      role_assignments    = try(v.role_assignments, null)
-      diagnostic_settings = try(v.diagnostic_settings, null)
-      inherit_tags        = try(v.inherit_tags, true)
-      tags                = try(v.tags, null)
+      accelerated_networking_enabled     = try(v.accelerated_networking_enabled, true)
+      dns_servers                        = try(v.dns_servers, null)
+      edge_zone                          = try(v.edge_zone, null)
+      internal_dns_name_label            = try(v.internal_dns_name_label, null)
+      ip_forwarding_enabled              = try(v.ip_forwarding_enabled, false)
+      network_security_group_resource_id = try(v.network_security_group_resource_id, null)
+      lock                               = try(v.lock, null)
+      role_assignments                   = try(v.role_assignments, null)
+      diagnostic_settings                = try(v.diagnostic_settings, null)
+      inherit_tags                       = try(v.inherit_tags, true)
+      tags                               = try(v.tags, null)
     }
   }
 
@@ -90,43 +105,55 @@ module "vm_foundation" {
   }
 
   # Security - Secure defaults
-  encryption_at_host_enabled = try(each.value.encryption_at_host_enabled, true) # Secure default
+  encryption_at_host_enabled = coalesce(try(each.value.encryption_at_host_enabled, null), true)
   secure_boot_enabled        = try(each.value.secure_boot_enabled, null)
   vtpm_enabled               = try(each.value.vtpm_enabled, null)
 
   # Account Credentials
   account_credentials = try(each.value.account_credentials, null)
 
-  # Managed Identity - Prefer managed identity over credentials
+  # Managed Identity - Secure default (system-assigned MI)
   managed_identities = try(each.value.managed_identities, {
-    system_assigned = true # Secure default - enable system-assigned MI
+    system_assigned = true
   })
 
-  # Optional - Data Disks
-  data_disk_managed_disks = try(each.value.data_disk_managed_disks, {})
+  # Custom Data
+  custom_data = try(each.value.custom_data, null)
 
-  # Optional - Extensions
-  extensions = try(each.value.extensions, {})
+  # Computer Name
+  computer_name = try(each.value.computer_name, null)
 
-  # Optional - Run Commands
-  run_commands = try(each.value.run_commands, {})
+  # Data Disks
+  data_disk_managed_disks  = try(each.value.data_disk_managed_disks, {})
+  data_disk_existing_disks = try(each.value.data_disk_existing_disks, {})
 
-  # Optional - Boot Diagnostics
-  boot_diagnostics                     = try(each.value.boot_diagnostics, false)
+  # Extensions
+  extensions                 = try(each.value.extensions, {})
+  extensions_time_budget     = try(each.value.extensions_time_budget, null)
+  allow_extension_operations = try(each.value.allow_extension_operations, null)
+
+  # Run Commands
+  run_commands         = try(each.value.run_commands, {})
+  run_commands_secrets = try(each.value.run_commands_secrets, {})
+
+  # Boot Diagnostics - Enabled by default for monitoring
+  boot_diagnostics                     = coalesce(try(each.value.boot_diagnostics, null), true)
   boot_diagnostics_storage_account_uri = try(each.value.boot_diagnostics_storage_account_uri, null)
 
-  # Optional - Priority (Regular or Spot)
+  # Priority (Regular or Spot)
   priority        = try(each.value.priority, "Regular")
   eviction_policy = try(each.value.eviction_policy, null)
   max_bid_price   = try(each.value.max_bid_price, null)
 
-  # Optional - Patching
+  # Patching
   patch_mode                                             = try(each.value.patch_mode, null)
   patch_assessment_mode                                  = try(each.value.patch_assessment_mode, null)
   bypass_platform_safety_checks_on_user_schedule_enabled = try(each.value.bypass_platform_safety_checks_on_user_schedule_enabled, null)
   hotpatching_enabled                                    = try(each.value.hotpatching_enabled, null)
+  enable_automatic_updates                               = try(each.value.enable_automatic_updates, null)
+  reboot_setting                                         = try(each.value.reboot_setting, null)
 
-  # Optional - Availability
+  # Availability
   availability_set_resource_id           = try(each.value.availability_set_resource_id, null)
   capacity_reservation_group_resource_id = try(each.value.capacity_reservation_group_resource_id, null)
   dedicated_host_resource_id             = try(each.value.dedicated_host_resource_id, null)
@@ -135,22 +162,53 @@ module "vm_foundation" {
   virtual_machine_scale_set_resource_id  = try(each.value.virtual_machine_scale_set_resource_id, null)
   platform_fault_domain                  = try(each.value.platform_fault_domain, null)
 
-  # Optional - Shutdown Schedule
+  # Termination Notification
+  termination_notification = try(each.value.termination_notification, null)
+
+  # License
+  license_type = try(each.value.license_type, null)
+
+  # Plan (Marketplace image)
+  plan = try(each.value.plan, null)
+
+  # Provision VM Agent
+  provision_vm_agent = try(each.value.provision_vm_agent, null)
+
+  # Disk Controller
+  disk_controller_type = try(each.value.disk_controller_type, null)
+
+  # Edge Zone
+  edge_zone = try(each.value.edge_zone, null)
+
+  # Additional Unattend Contents (Windows)
+  additional_unattend_contents = try(each.value.additional_unattend_contents, null)
+
+  # Gallery Applications
+  gallery_applications = try(each.value.gallery_applications, null)
+
+  # Secrets (Key Vault certificates)
+  secrets = try(each.value.secrets, null)
+
+  # Shutdown Schedule
   shutdown_schedules = try(each.value.shutdown_schedules, {})
 
-  # Optional - Backup
+  # Backup
   azure_backup_configurations = try(each.value.azure_backup_configurations, {})
 
-  # Optional - Resource Lock
+  # Maintenance Configuration
+  maintenance_configuration_resource_ids = try(each.value.maintenance_configuration_resource_ids, null)
+
+  # Resource Lock
   lock = try(each.value.lock, null)
 
-  # Optional - Role Assignments
-  role_assignments = try(each.value.role_assignments, {})
+  # Role Assignments
+  role_assignments                         = try(each.value.role_assignments, {})
+  role_assignments_system_managed_identity = try(each.value.role_assignments_system_managed_identity, {})
 
-  # Optional - Diagnostic Settings
+  # Diagnostic Settings
   diagnostic_settings = try(each.value.diagnostic_settings, {})
 
-  # Optional - Timeouts
+  # Timeouts
   timeouts = try(each.value.timeouts, null)
 
   # Tags

@@ -1,7 +1,7 @@
 variable "bastions" {
   type = map(object({
     # Required
-    parent_id = string # Resource Group ID where Bastion will be created
+    parent_id = string           # Resource Group ID where Bastion will be created
     subnet_id = optional(string) # Subnet ID (must be AzureBastionSubnet, required for non-Developer SKUs)
 
     # Optional - Basic Configuration

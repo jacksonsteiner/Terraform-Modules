@@ -7,6 +7,12 @@ variable "private_dns_zones" {
     # Optional - Basic Configuration
     enable_telemetry = optional(bool, false)
 
+    # Optional - Resource Lock
+    lock = optional(object({
+      kind = string # "CanNotDelete" or "ReadOnly"
+      name = optional(string)
+    }))
+
     # Optional - Role Assignments
     role_assignments = optional(map(object({
       role_definition_id_or_name             = string
@@ -103,16 +109,16 @@ variable "private_dns_zones" {
     # Optional - Timeouts and Retry
     timeouts = optional(object({
       dns_zones = optional(object({
-        create = optional(string, "30m")
-        delete = optional(string, "30m")
-        update = optional(string, "30m")
-        read   = optional(string, "5m")
+        create = optional(string)
+        delete = optional(string)
+        update = optional(string)
+        read   = optional(string)
       }))
       vnet_links = optional(object({
-        create = optional(string, "30m")
-        delete = optional(string, "30m")
-        update = optional(string, "30m")
-        read   = optional(string, "5m")
+        create = optional(string)
+        delete = optional(string)
+        update = optional(string)
+        read   = optional(string)
       }))
     }))
 
@@ -120,6 +126,8 @@ variable "private_dns_zones" {
       error_message_regex  = optional(list(string))
       interval_seconds     = optional(number)
       max_interval_seconds = optional(number)
+      multiplier           = optional(number)
+      randomization_factor = optional(number)
     }))
 
     tags = optional(map(string))
@@ -130,20 +138,20 @@ variable "private_dns_zones" {
 
 variable "location_short" {
   type        = string
-  description = "Short location identifier"
+  description = "Short location identifier (e.g., 'eus', 'wus', 'cus')"
 }
 
 variable "environment" {
   type        = string
-  description = "Environment identifier"
+  description = "Environment identifier (e.g., 'dev', 'staging', 'prod')"
 }
 
 variable "location" {
   type        = string
-  description = "Azure region"
+  description = "Azure region where resources will be created (e.g., 'eastus', 'westus')"
 }
 
 variable "project_name" {
   type        = string
-  description = "Project name"
+  description = "Project name used for resource naming"
 }

@@ -4,8 +4,8 @@ locals {
   ]))
 
   names = {
-    pdz     = "pdz-${local.suffix}"
-    pdzvnl  = "pdzvnl-${local.suffix}"
+    pdz    = "pdz-${local.suffix}"
+    pdzvnl = "pdzvnl-${local.suffix}"
   }
 
   tags = {
@@ -17,7 +17,7 @@ locals {
 
 module "private_dns_zones" {
   source  = "Azure/avm-res-network-privatednszone/azurerm"
-  version = "0.4.4"
+  version = "~> 0.4"
 
   for_each = var.private_dns_zones
 
@@ -27,6 +27,9 @@ module "private_dns_zones" {
 
   # Optional - Telemetry
   enable_telemetry = coalesce(try(each.value.enable_telemetry, null), false)
+
+  # Optional - Resource Lock
+  lock = try(each.value.lock, null)
 
   # Optional - Role Assignments
   role_assignments = try(each.value.role_assignments, {})
@@ -56,20 +59,7 @@ module "private_dns_zones" {
   }
 
   # Optional - Timeouts
-  timeouts = coalesce(try(each.value.timeouts, null), {
-    dns_zones = {
-      create = "30m"
-      delete = "30m"
-      read   = "5m"
-      update = "30m"
-    }
-    virtual_network_links = {
-      create = "30m"
-      delete = "30m"
-      read   = "5m"
-      update = "30m"
-    }
-  })
+  timeouts = try(each.value.timeouts, {})
 
   # Optional - Retry Configuration
   retry = try(each.value.retry, {})
