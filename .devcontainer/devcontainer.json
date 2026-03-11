@@ -10,7 +10,8 @@
       "extensions": [
         "hashicorp.terraform",
         "ms-azuretools.vscode-azureterraform",
-        "ms-vscode.azurecli"
+        "ms-vscode.azurecli",
+        "anthropic.claude-code"
       ],
       "settings": {
         "terraform.languageServer.enable": true,
@@ -18,15 +19,16 @@
       }
     }
   },
-  "postCreateCommand": "terraform --version && az --version && claude --version",
+  "postCreateCommand": "terraform --version && aws --version && az --version && gcloud --version && codex --version && claude --version && gemini --version",
   "remoteUser": "vscode",
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/${localWorkspaceFolderBasename},type=bind",
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
   "remoteEnv": {
     "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}",
-    "ANTHROPIC_MODEL": "claude-opus-4-5-20251101"
+    "ANTHROPIC_MODEL": "opus",
+    "GEMINI_API_KEY": "${localEnv:GEMINI_API_KEY}",
+    "GEMINI_MODEL": "gemini-3-pro-preview"
   },
-  "runArgs": ["--userns=keep-id"],
   "containerUser": "vscode",
   "updateRemoteUserUID": true,
   "userEnvProbe": "none"

@@ -85,7 +85,7 @@ variable "key_vaults" {
       name                                    = optional(string)
       subnet_resource_id                      = string # Subnet resource ID for private endpoint
       private_dns_zone_group_name             = optional(string, "default")
-      private_dns_zone_resource_ids           = optional(set(string))
+      private_dns_zone_resource_ids           = optional(set(string), [])
       application_security_group_associations = optional(map(string), {})
       private_service_connection_name         = optional(string)
       network_interface_name                  = optional(string)
@@ -93,7 +93,7 @@ variable "key_vaults" {
       resource_group_name                     = optional(string)
       ip_configurations = optional(map(object({
         name               = string
-        private_ip_address = optional(string)
+        private_ip_address = string
       })), {})
       tags = optional(map(string))
       lock = optional(object({
