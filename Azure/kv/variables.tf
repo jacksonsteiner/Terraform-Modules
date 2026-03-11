@@ -45,7 +45,7 @@ variable "key_vaults" {
       condition_version                      = optional(string)
       delegated_managed_identity_resource_id = optional(string)
       principal_type                         = optional(string)
-    })))
+    })), {})
 
     # Optional - Legacy Access Policies (disables RBAC)
     legacy_access_policies_enabled = optional(bool, false)
@@ -56,7 +56,7 @@ variable "key_vaults" {
       key_permissions         = optional(set(string), [])
       secret_permissions      = optional(set(string), [])
       storage_permissions     = optional(set(string), [])
-    })))
+    })), {})
 
     # Optional - Diagnostic Settings
     diagnostic_settings = optional(map(object({
@@ -70,14 +70,14 @@ variable "key_vaults" {
       event_hub_authorization_rule_resource_id = optional(string)
       event_hub_name                           = optional(string)
       marketplace_partner_resource_id          = optional(string)
-    })))
+    })), {})
 
     # Optional - Contacts
     contacts = optional(map(object({
       email = string
       name  = optional(string)
       phone = optional(string)
-    })))
+    })), {})
 
     # Optional - Private Endpoints
     private_endpoints_manage_dns_zone_group = optional(bool, true)
@@ -109,8 +109,8 @@ variable "key_vaults" {
         condition_version                      = optional(string)
         delegated_managed_identity_resource_id = optional(string)
         principal_type                         = optional(string)
-      })))
-    })))
+      })), {})
+    })), {})
 
     # Optional - Keys
     keys = optional(map(object({
@@ -140,7 +140,7 @@ variable "key_vaults" {
         expire_after         = optional(string)
         notify_before_expiry = optional(string)
       }))
-    })))
+    })), {})
 
     # Optional - Secrets
     secrets = optional(map(object({
@@ -159,25 +159,25 @@ variable "key_vaults" {
         delegated_managed_identity_resource_id = optional(string)
         principal_type                         = optional(string)
       })))
-    })))
+    })), {})
     secrets_value = optional(map(string)) # Sensitive - actual secret values
 
     # Optional - RBAC Wait Configuration
     wait_for_rbac_before_key_operations = optional(object({
       create  = optional(string, "30s")
       destroy = optional(string, "0s")
-    }))
+    }), {})
     wait_for_rbac_before_secret_operations = optional(object({
       create  = optional(string, "30s")
       destroy = optional(string, "0s")
-    }))
+    }), {})
     wait_for_rbac_before_contact_operations = optional(object({
       create  = optional(string, "30s")
       destroy = optional(string, "0s")
-    }))
+    }), {})
 
     # Tags
-    tags = optional(map(string))
+    tags = optional(map(string), {})
   }))
   default     = {}
   description = "Map of Key Vaults to create with all AVM module options exposed"
