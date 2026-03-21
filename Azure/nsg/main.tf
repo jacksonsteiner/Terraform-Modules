@@ -75,3 +75,12 @@ module "network_security_groups" {
   # Tags
   tags = merge(local.tags, try(each.value.tags, {}))
 }
+
+resource "azurerm_subnet_network_security_group_association" "this" {
+  for_each = {
+    for k, v in var.network_security_groups : k => v if v.subnet_resource_id != null
+  }
+
+  subnet_id                 = each.value.subnet_resource_id
+  network_security_group_id = module.network_security_groups[each.key].resource_id
+}

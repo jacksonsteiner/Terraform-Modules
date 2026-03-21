@@ -83,6 +83,9 @@ variable "network_security_groups" {
       update = optional(string)
     }))
 
+    # Optional - Subnet Association
+    subnet_resource_id = optional(string) # Associate this NSG with a subnet
+
     # Tags
     tags = optional(map(string))
   }))
