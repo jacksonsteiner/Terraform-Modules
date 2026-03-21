@@ -140,9 +140,11 @@ variable "virtual_machines" {
       inherit_tags                     = optional(bool, true)
     })), {})
     data_disk_existing_disks = optional(map(object({
-      disk_resource_id = string
-      caching          = optional(string, "ReadWrite")
-      lun              = optional(number)
+      managed_disk_resource_id      = string
+      caching                       = string
+      lun                           = number
+      disk_attachment_create_option = optional(string, "Attach")
+      write_accelerator_enabled     = optional(bool, false)
     })), {})
 
     # Extensions
@@ -164,16 +166,39 @@ variable "virtual_machines" {
 
     # Run Commands
     run_commands = optional(map(object({
-      name              = string
-      source_script     = optional(string)
-      source_script_uri = optional(string)
-      source_command_id = optional(string)
-      error_blob_uri    = optional(string)
-      output_blob_uri   = optional(string)
-      run_as_user       = optional(string)
-      run_as_password   = optional(string)
-      parameters        = optional(list(object({ name = string, value = string })))
-      tags              = optional(map(string))
+      location        = string
+      name            = string
+      deploy_sequence = optional(number, 3)
+      script_source = object({
+        command_id = optional(string)
+        script     = optional(string)
+        script_uri = optional(string)
+        script_uri_managed_identity = optional(object({
+          client_id = optional(string)
+          object_id = optional(string)
+        }))
+      })
+      error_blob_managed_identity = optional(object({
+        client_id = optional(string)
+        object_id = optional(string)
+      }))
+      error_blob_uri = optional(string)
+      output_blob_managed_identity = optional(object({
+        client_id = optional(string)
+        object_id = optional(string)
+      }))
+      output_blob_uri = optional(string)
+      parameters = optional(map(object({
+        name  = string
+        value = string
+      })), {})
+      timeouts = optional(object({
+        create = optional(string)
+        delete = optional(string)
+        update = optional(string)
+        read   = optional(string)
+      }))
+      tags = optional(map(string))
     })), {})
     run_commands_secrets = optional(map(any), {})
 
@@ -267,16 +292,16 @@ variable "virtual_machines" {
 
     # Backup
     azure_backup_configurations = optional(map(object({
-      resource_group_name       = string
-      recovery_vault_name       = string
-      backup_policy_resource_id = string
-      exclude_disk_luns         = optional(list(number))
-      include_disk_luns         = optional(list(number))
-      protection_stopped        = optional(bool, false)
+      recovery_vault_resource_id = string
+      resource_group_name        = optional(string)
+      recovery_vault_name        = optional(string)
+      backup_policy_resource_id  = optional(string)
+      exclude_disk_luns          = optional(list(number))
+      include_disk_luns          = optional(list(number))
     })), {})
 
     # Maintenance Configuration
-    maintenance_configuration_resource_ids = optional(list(string))
+    maintenance_configuration_resource_ids = optional(map(string), {})
 
     # Resource Lock
     lock = optional(object({
@@ -296,13 +321,14 @@ variable "virtual_machines" {
       principal_type                         = optional(string)
     })))
     role_assignments_system_managed_identity = optional(map(object({
-      role_definition_id_or_name       = string
-      scope                            = string
-      description                      = optional(string)
-      skip_service_principal_aad_check = optional(bool, false)
-      condition                        = optional(string)
-      condition_version                = optional(string)
-      principal_type                   = optional(string)
+      role_definition_id_or_name             = string
+      scope_resource_id                      = string
+      description                            = optional(string)
+      skip_service_principal_aad_check       = optional(bool, false)
+      condition                              = optional(string)
+      condition_version                      = optional(string)
+      delegated_managed_identity_resource_id = optional(string)
+      principal_type                         = optional(string)
     })))
 
     # Diagnostic Settings
