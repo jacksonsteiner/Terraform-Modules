@@ -31,6 +31,9 @@ module "virtual_machines" {
   os_type  = coalesce(try(each.value.os_type, null), "Linux")
   sku_size = coalesce(try(each.value.sku_size, null), "Standard_D2s_v3")
 
+  # Public IP global configuration (applies to all NICs that create public IPs)
+  public_ip_configuration_details = var.public_ip_configuration_details
+
   # Optional - Telemetry
   enable_telemetry = coalesce(try(each.value.enable_telemetry, null), false)
 
@@ -42,49 +45,42 @@ module "virtual_machines" {
       ip_configurations = {
         for ipk, ipv in v.ip_configurations : ipk => {
           name                          = coalesce(try(ipv.name, null), ipk)
-          private_ip_subnet_resource_id = ipv.private_ip_subnet_resource_id
+          private_ip_subnet_resource_id = try(ipv.private_ip_subnet_resource_id, null)
           private_ip_address            = try(ipv.private_ip_address, null)
           private_ip_address_allocation = try(ipv.private_ip_address_allocation, "Dynamic")
-          is_primary_ipconfiguration    = try(ipv.is_primary_ipconfiguration, null)
+          private_ip_address_version    = try(ipv.private_ip_address_version, "IPv4")
+          is_primary_ipconfiguration    = try(ipv.is_primary_ipconfiguration, true)
 
           # Public IP - disabled by default (secure)
-          create_public_ip_address                       = try(ipv.create_public_ip_address, false)
-          public_ip_address_name                         = try(ipv.public_ip_address_name, null)
-          public_ip_address_resource_id                  = try(ipv.public_ip_address_resource_id, null)
-          public_ip_address_allocation                   = try(ipv.public_ip_address_allocation, "Static")
-          public_ip_address_sku                          = try(ipv.public_ip_address_sku, "Standard")
-          public_ip_address_availability_zone            = try(ipv.public_ip_address_availability_zone, "Zone-Redundant")
-          public_ip_address_idle_timeout_in_minutes      = try(ipv.public_ip_address_idle_timeout_in_minutes, null)
-          public_ip_address_ip_version                   = try(ipv.public_ip_address_ip_version, "IPv4")
-          public_ip_address_sku_tier                     = try(ipv.public_ip_address_sku_tier, "Regional")
-          public_ip_address_lock                         = try(ipv.public_ip_address_lock, null)
-          public_ip_address_tags                         = try(ipv.public_ip_address_tags, null)
-          public_ip_address_inherit_tags                 = try(ipv.public_ip_address_inherit_tags, true)
-          public_ip_address_ddos_protection_mode         = try(ipv.public_ip_address_ddos_protection_mode, null)
-          public_ip_address_ddos_protection_plan_id      = try(ipv.public_ip_address_ddos_protection_plan_id, null)
-          public_ip_address_domain_name_label            = try(ipv.public_ip_address_domain_name_label, null)
-          public_ip_address_domain_name_label_scope      = try(ipv.public_ip_address_domain_name_label_scope, null)
-          public_ip_address_edge_zone                    = try(ipv.public_ip_address_edge_zone, null)
-          public_ip_address_ip_tags                      = try(ipv.public_ip_address_ip_tags, null)
-          public_ip_address_public_ip_prefix_resource_id = try(ipv.public_ip_address_public_ip_prefix_resource_id, null)
-          public_ip_address_reverse_fqdn                 = try(ipv.public_ip_address_reverse_fqdn, null)
-          public_ip_address_diagnostic_settings          = try(ipv.public_ip_address_diagnostic_settings, null)
-          public_ip_address_role_assignments             = try(ipv.public_ip_address_role_assignments, null)
+          create_public_ip_address      = try(ipv.create_public_ip_address, false)
+          public_ip_address_name        = try(ipv.public_ip_address_name, null)
+          public_ip_address_resource_id = try(ipv.public_ip_address_resource_id, null)
+          public_ip_address_lock_name   = try(ipv.public_ip_address_lock_name, null)
+
+          # Load Balancer / App Gateway integration
+          app_gateway_backend_pools                                   = try(ipv.app_gateway_backend_pools, {})
+          gateway_load_balancer_frontend_ip_configuration_resource_id = try(ipv.gateway_load_balancer_frontend_ip_configuration_resource_id, null)
+          load_balancer_backend_pools                                 = try(ipv.load_balancer_backend_pools, {})
+          load_balancer_nat_rules                                     = try(ipv.load_balancer_nat_rules, {})
         }
       }
 
       # NIC-level settings
-      accelerated_networking_enabled     = try(v.accelerated_networking_enabled, true)
-      dns_servers                        = try(v.dns_servers, null)
-      edge_zone                          = try(v.edge_zone, null)
-      internal_dns_name_label            = try(v.internal_dns_name_label, null)
-      ip_forwarding_enabled              = try(v.ip_forwarding_enabled, false)
-      network_security_group_resource_id = try(v.network_security_group_resource_id, null)
-      lock                               = try(v.lock, null)
-      role_assignments                   = try(v.role_assignments, null)
-      diagnostic_settings                = try(v.diagnostic_settings, null)
-      inherit_tags                       = try(v.inherit_tags, true)
-      tags                               = try(v.tags, null)
+      accelerated_networking_enabled = try(v.accelerated_networking_enabled, false)
+      application_security_groups    = try(v.application_security_groups, {})
+      dns_servers                    = try(v.dns_servers, null)
+      edge_zone                      = try(v.edge_zone, null)
+      inherit_tags                   = try(v.inherit_tags, true)
+      internal_dns_name_label        = try(v.internal_dns_name_label, null)
+      ip_forwarding_enabled          = try(v.ip_forwarding_enabled, false)
+      is_primary                     = try(v.is_primary, false)
+      lock_level                     = try(v.lock_level, null)
+      lock_name                      = try(v.lock_name, null)
+      network_security_groups        = try(v.network_security_groups, {})
+      resource_group_name            = try(v.resource_group_name, null)
+      role_assignments               = try(v.role_assignments, {})
+      diagnostic_settings            = try(v.diagnostic_settings, {})
+      tags                           = try(v.tags, null)
     }
   }
 
@@ -102,6 +98,7 @@ module "virtual_machines" {
     secure_vm_disk_encryption_set_id = try(each.value.os_disk.secure_vm_disk_encryption_set_id, null)
     security_encryption_type         = try(each.value.os_disk.security_encryption_type, null)
     disk_encryption_set_id           = try(each.value.os_disk.disk_encryption_set_id, null)
+    diff_disk_settings               = try(each.value.os_disk.diff_disk_settings, null)
   }
 
   # Security - Secure defaults

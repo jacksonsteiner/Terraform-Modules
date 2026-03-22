@@ -21,48 +21,51 @@ variable "virtual_machines" {
 
       ip_configurations = map(object({
         name                          = optional(string)
-        private_ip_subnet_resource_id = string # Subnet resource ID
+        private_ip_subnet_resource_id = optional(string) # Subnet resource ID
         private_ip_address            = optional(string)
         private_ip_address_allocation = optional(string, "Dynamic")
-        is_primary_ipconfiguration    = optional(bool)
+        private_ip_address_version    = optional(string, "IPv4")
+        is_primary_ipconfiguration    = optional(bool, true)
 
         # Public IP - disabled by default for security
-        create_public_ip_address                       = optional(bool, false)
-        public_ip_address_name                         = optional(string)
-        public_ip_address_resource_id                  = optional(string)
-        public_ip_address_allocation                   = optional(string, "Static")
-        public_ip_address_sku                          = optional(string, "Standard")
-        public_ip_address_availability_zone            = optional(string, "Zone-Redundant")
-        public_ip_address_idle_timeout_in_minutes      = optional(number)
-        public_ip_address_ip_version                   = optional(string, "IPv4")
-        public_ip_address_sku_tier                     = optional(string, "Regional")
-        public_ip_address_lock                         = optional(object({ kind = string, name = optional(string) }))
-        public_ip_address_tags                         = optional(map(string))
-        public_ip_address_inherit_tags                 = optional(bool, true)
-        public_ip_address_ddos_protection_mode         = optional(string)
-        public_ip_address_ddos_protection_plan_id      = optional(string)
-        public_ip_address_domain_name_label            = optional(string)
-        public_ip_address_domain_name_label_scope      = optional(string)
-        public_ip_address_edge_zone                    = optional(string)
-        public_ip_address_ip_tags                      = optional(map(string))
-        public_ip_address_public_ip_prefix_resource_id = optional(string)
-        public_ip_address_reverse_fqdn                 = optional(string)
-        public_ip_address_diagnostic_settings          = optional(map(any))
-        public_ip_address_role_assignments             = optional(map(any))
+        create_public_ip_address      = optional(bool, false)
+        public_ip_address_name        = optional(string)
+        public_ip_address_resource_id = optional(string)
+        public_ip_address_lock_name   = optional(string)
+
+        # Load Balancer / App Gateway integration
+        app_gateway_backend_pools = optional(map(object({
+          app_gateway_backend_pool_resource_id = string
+        })), {})
+        gateway_load_balancer_frontend_ip_configuration_resource_id = optional(string)
+        load_balancer_backend_pools = optional(map(object({
+          load_balancer_backend_pool_resource_id = string
+        })), {})
+        load_balancer_nat_rules = optional(map(object({
+          load_balancer_nat_rule_resource_id = string
+        })), {})
       }))
 
       # NIC-level settings
-      accelerated_networking_enabled     = optional(bool, true)
-      dns_servers                        = optional(list(string))
-      edge_zone                          = optional(string)
-      internal_dns_name_label            = optional(string)
-      ip_forwarding_enabled              = optional(bool, false)
-      network_security_group_resource_id = optional(string)
-      lock                               = optional(object({ kind = string, name = optional(string) }))
-      role_assignments                   = optional(map(any))
-      diagnostic_settings                = optional(map(any))
-      inherit_tags                       = optional(bool, true)
-      tags                               = optional(map(string))
+      accelerated_networking_enabled = optional(bool, false)
+      application_security_groups = optional(map(object({
+        application_security_group_resource_id = string
+      })), {})
+      dns_servers             = optional(list(string))
+      edge_zone               = optional(string)
+      inherit_tags            = optional(bool, true)
+      internal_dns_name_label = optional(string)
+      ip_forwarding_enabled   = optional(bool, false)
+      is_primary              = optional(bool, false)
+      lock_level              = optional(string)
+      lock_name               = optional(string)
+      network_security_groups = optional(map(object({
+        network_security_group_resource_id = string
+      })), {})
+      resource_group_name = optional(string)
+      role_assignments    = optional(map(any))
+      diagnostic_settings = optional(map(any))
+      tags                = optional(map(string))
     }))
 
     # Source Image
@@ -84,6 +87,10 @@ variable "virtual_machines" {
       secure_vm_disk_encryption_set_id = optional(string)
       security_encryption_type         = optional(string)
       disk_encryption_set_id           = optional(string)
+      diff_disk_settings = optional(object({
+        option    = string
+        placement = optional(string, "CacheDisk")
+      }))
     }))
 
     # Security - Secure defaults
@@ -93,20 +100,24 @@ variable "virtual_machines" {
 
     # Account Credentials
     account_credentials = optional(object({
-      admin_username                                 = optional(string)
-      admin_password                                 = optional(string)
-      admin_ssh_keys                                 = optional(set(object({ public_key = string, username = optional(string) })))
-      disable_password_authentication                = optional(bool, true) # Secure default for Linux
-      generate_admin_password_or_ssh_key             = optional(bool, true)
-      generated_secrets_key_vault_secret_resource_id = optional(string)
-      generated_secrets_key_vault_secret_config = optional(object({
-        name            = string
-        expiration_date = optional(string)
-        content_type    = optional(string)
-        not_before_date = optional(string)
-        tags            = optional(map(string))
+      admin_credentials = optional(object({
+        username                           = optional(string, "azureuser")
+        password                           = optional(string)
+        ssh_keys                           = optional(list(string), [])
+        generate_admin_password_or_ssh_key = optional(bool, true)
+      }), {})
+      key_vault_configuration = optional(object({
+        resource_id = string
+        secret_configuration = optional(object({
+          name                           = optional(string)
+          expiration_date_length_in_days = optional(number, 45)
+          content_type                   = optional(string, "text/plain")
+          not_before_date                = optional(string)
+          tags                           = optional(map(string), {})
+        }), {})
       }))
-    }))
+      password_authentication_disabled = optional(bool, true) # Secure default for Linux
+    }), {})
 
     # Managed Identity - Default enables system-assigned
     managed_identities = optional(object({
@@ -153,13 +164,24 @@ variable "virtual_machines" {
       publisher                   = string
       type                        = string
       type_handler_version        = string
-      auto_upgrade_minor_version  = optional(bool, true)
-      automatic_upgrade_enabled   = optional(bool, false)
+      auto_upgrade_minor_version  = optional(bool)
+      automatic_upgrade_enabled   = optional(bool)
+      deploy_sequence             = optional(number, 5)
       failure_suppression_enabled = optional(bool, false)
       settings                    = optional(string)
       protected_settings          = optional(string)
-      provision_after_extensions  = optional(list(string))
-      tags                        = optional(map(string))
+      protected_settings_from_key_vault = optional(object({
+        secret_url      = string
+        source_vault_id = string
+      }))
+      provision_after_extensions = optional(list(string), [])
+      tags                       = optional(map(string))
+      timeouts = optional(object({
+        create = optional(string)
+        delete = optional(string)
+        update = optional(string)
+        read   = optional(string)
+      }))
     })), {})
     extensions_time_budget     = optional(string)
     allow_extension_operations = optional(bool)
@@ -284,9 +306,9 @@ variable "virtual_machines" {
       notification_settings = optional(object({
         enabled         = optional(bool, false)
         email           = optional(string)
-        time_in_minutes = optional(number, 30)
+        time_in_minutes = optional(string, "30")
         webhook_url     = optional(string)
-      }))
+      }), { enabled = false })
       tags = optional(map(string))
     })), {})
 
@@ -335,7 +357,7 @@ variable "virtual_machines" {
     diagnostic_settings = optional(map(object({
       name                                     = optional(string)
       log_categories                           = optional(set(string), [])
-      log_groups                               = optional(set(string), ["allLogs"])
+      log_groups                               = optional(set(string), [])
       metric_categories                        = optional(set(string), ["AllMetrics"])
       log_analytics_destination_type           = optional(string, "Dedicated")
       workspace_resource_id                    = optional(string)
@@ -358,6 +380,25 @@ variable "virtual_machines" {
   }))
   default     = {}
   description = "Map of Virtual Machines to create with all AVM module options exposed"
+}
+
+variable "public_ip_configuration_details" {
+  type = object({
+    allocation_method       = optional(string, "Static")
+    ddos_protection_mode    = optional(string, "VirtualNetworkInherited")
+    ddos_protection_plan_id = optional(string)
+    domain_name_label       = optional(string)
+    idle_timeout_in_minutes = optional(number, 30)
+    inherit_tags            = optional(bool, false)
+    ip_version              = optional(string, "IPv4")
+    lock_level              = optional(string)
+    sku                     = optional(string, "Standard")
+    sku_tier                = optional(string, "Regional")
+    tags                    = optional(map(string))
+    zones                   = optional(set(string), ["1", "2", "3"])
+  })
+  default     = {}
+  description = "Global public IP configuration applied to all VMs that create public IPs via create_public_ip_address. Individual IP SKU, allocation method, zones, and DDoS settings are set here rather than per ip_configuration."
 }
 
 variable "location_short" {
