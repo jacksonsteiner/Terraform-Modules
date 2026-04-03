@@ -46,6 +46,15 @@ variable "applications" {
     service_principal_owners      = optional(set(string))
     service_principal_tags        = optional(set(string))
 
+    # Optional - Required Resource Access (API Permissions)
+    required_resource_access = optional(list(object({
+      resource_app_id = string
+      resource_access = optional(list(object({
+        id   = string
+        type = string
+      })), [])
+    })), [])
+
     # Optional - Federated Identity Credentials
     federated_identity_credentials = optional(map(object({
       display_name = string
