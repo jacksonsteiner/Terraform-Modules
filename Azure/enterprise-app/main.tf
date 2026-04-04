@@ -45,7 +45,7 @@ resource "azuread_service_principal_delegated_permission_grant" "this" {
     ]) : item.key => item
   }
 
-  service_principal_object_id        = azuread_service_principal.this[each.value.app_key].object_id
-  client_service_principal_object_id = each.value.client_service_principal_object_id
-  claim_values                       = each.value.claim_values
+  service_principal_object_id          = each.value.client_service_principal_object_id
+  resource_service_principal_object_id = azuread_service_principal.this[each.value.app_key].object_id
+  claim_values                         = each.value.claim_values
 }

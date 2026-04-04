@@ -22,7 +22,7 @@ variable "enterprise_applications" {
 
     # Optional - Delegated Permission Grants (admin consent for OAuth2 delegated scopes)
     delegated_permission_grants = optional(map(object({
-      client_service_principal_object_id = string       # Object ID of the client service principal requesting access
+      client_service_principal_object_id = string       # Object ID of the client SP being granted access (service_principal_object_id)
       claim_values                       = list(string) # OAuth2 scope claim values e.g. ["openid", "profile", "email"]
     })), {})
   }))
