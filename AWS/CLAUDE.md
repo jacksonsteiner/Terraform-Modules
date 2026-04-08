@@ -144,6 +144,7 @@ Balance security requirements with cost efficiency.
 | Lambda | [terraform-aws-lambda](https://github.com/terraform-aws-modules/terraform-aws-lambda) | [variables.tf](https://github.com/terraform-aws-modules/terraform-aws-lambda/blob/master/variables.tf) |
 | DynamoDB | [terraform-aws-dynamodb-table](https://github.com/terraform-aws-modules/terraform-aws-dynamodb-table) | [variables.tf](https://github.com/terraform-aws-modules/terraform-aws-dynamodb-table/blob/master/variables.tf) |
 | API Gateway v2 | [terraform-aws-apigateway-v2](https://github.com/terraform-aws-modules/terraform-aws-apigateway-v2) | [variables.tf](https://github.com/terraform-aws-modules/terraform-aws-apigateway-v2/blob/master/variables.tf) |
+| IAM (OIDC Role) | [terraform-aws-iam//iam-assumable-role-with-oidc](https://github.com/terraform-aws-modules/terraform-aws-iam/tree/master/modules/iam-assumable-role-with-oidc) | [variables.tf](https://github.com/terraform-aws-modules/terraform-aws-iam/blob/master/modules/iam-assumable-role-with-oidc/variables.tf) |
 
 ### Version Pinning Strategy
 
