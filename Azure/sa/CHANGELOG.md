@@ -18,4 +18,7 @@
   - `network_rules.default_action = "Deny"` with `AzureServices` bypass
 - Cost-efficient defaults:
   - `account_tier = "Standard"`, `account_replication_type = "LRS"`, `access_tier = "Hot"`
-- Standard outputs: `storage_accounts`, `storage_account_ids`, `storage_account_names`, `storage_account_fqdns`, `storage_account_containers`, `storage_account_private_endpoints`
+- Standard outputs: `storage_account_ids`, `storage_account_names`, `storage_account_fqdns`, `storage_account_containers`, `storage_account_private_endpoints`
+
+### Notes
+- The whole-module passthrough output is intentionally omitted: the upstream AVM module exposes `primary_access_key` as an ephemeral value, so passing the entire module through would force the output to be `ephemeral = true` and break normal downstream consumers.

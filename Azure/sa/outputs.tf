@@ -1,8 +1,3 @@
-output "storage_accounts" {
-  description = "Map of created Storage Accounts with all attributes"
-  value       = module.storage_accounts
-}
-
 output "storage_account_ids" {
   description = "Map of Storage Account resource IDs"
   value       = { for k, v in module.storage_accounts : k => v.resource_id }

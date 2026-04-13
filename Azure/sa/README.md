@@ -59,7 +59,6 @@ module "storage_accounts" {
 
 ## Outputs
 
-- `storage_accounts` - Map of all created Storage Accounts with full attributes
 - `storage_account_ids` - Map of Storage Account resource IDs
 - `storage_account_names` - Map of Storage Account names
 - `storage_account_fqdns` - Map of service FQDNs per account
