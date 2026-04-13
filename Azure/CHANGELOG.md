@@ -4,6 +4,15 @@ All notable changes to these Azure Terraform modules will be documented in this 
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2026-04-13] - New Storage Account Module
+
+### Added
+- New `sa` module wrapping `Azure/avm-res-storage-storageaccount/azurerm` `~> 0.6`
+  - Map-based `storage_accounts` input consistent with existing modules
+  - Exposes containers, queues, shares, tables, Data Lake Gen2 filesystems, management policies, private endpoints, diagnostic settings, CMK, managed identities, and role assignments
+  - Secure-by-default: telemetry off, public access denied, HTTPS only, TLS 1.2, infra encryption on, shared key disabled, OAuth default, deny-all network rules
+  - Cost-efficient defaults: Standard tier, LRS replication, Hot access tier
+
 ## [2026-02-04] - Security, Cost, and Version Updates
 
 ### Changed
