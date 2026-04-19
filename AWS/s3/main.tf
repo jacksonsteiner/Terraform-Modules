@@ -9,7 +9,7 @@ locals {
 
 module "s3_bucket" {
   source  = "terraform-aws-modules/s3-bucket/aws"
-  version = "~> 5.12.0"
+  version = "~> 5.10.0"
 
   for_each = var.s3_buckets
 
