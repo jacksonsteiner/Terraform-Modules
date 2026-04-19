@@ -9,7 +9,7 @@ locals {
 
 module "lambda" {
   source  = "terraform-aws-modules/lambda/aws"
-  version = "~> 7.0"
+  version = "~> 8.7.0"
 
   for_each = var.functions
 

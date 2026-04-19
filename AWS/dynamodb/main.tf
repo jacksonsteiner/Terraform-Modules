@@ -9,7 +9,7 @@ locals {
 
 module "dynamodb_table" {
   source  = "terraform-aws-modules/dynamodb-table/aws"
-  version = "~> 4.0"
+  version = "~> 5.5.0"
 
   for_each = var.tables
 

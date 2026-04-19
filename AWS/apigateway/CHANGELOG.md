@@ -1,3 +1,8 @@
+## [2026-04-19] - Update Module Version
+
+## Changed
+- API Gateway v2 module wrapping `terraform-aws-modules/apigateway-v2/aws` ~> 6.1.0 (latest)
+
 ## [2026-04-07] - Initial Release
 
 ### Added

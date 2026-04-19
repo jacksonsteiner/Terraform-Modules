@@ -1,3 +1,8 @@
+## [2026-04-19] - Update Module Version
+
+## Changed
+- ACM Certificate module wrapping `terraform-aws-modules/acm/aws` ~> 6.3.0 (latest)
+
 ## [2026-04-07] - Initial Release
 
 ### Added

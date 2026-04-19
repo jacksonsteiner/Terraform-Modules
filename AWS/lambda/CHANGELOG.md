@@ -1,3 +1,8 @@
+## [2026-04-19] - Update Module Version
+
+## Changed
+- Lambda function module wrapping `terraform-aws-modules/lambda/aws` ~> 8.7.0 (latest)
+
 ## [2026-04-07] - Initial Release
 
 ### Added
