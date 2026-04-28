@@ -4,6 +4,14 @@ All notable changes to these Azure Terraform modules will be documented in this 
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2026-04-28] - App Module Optional Claims
+
+### Added
+- `app` module now supports `optional_claims` on `azuread_application`
+  - New `optional_claims` object on each application with `access_token`, `id_token`, and `saml2_token` lists
+  - Each claim entry accepts `name`, `source`, `essential`, and `additional_properties`
+  - Enables emitting additional claims (e.g. `email`) in issued tokens without modifying the module
+
 ## [2026-04-13] - New Storage Account Module
 
 ### Added

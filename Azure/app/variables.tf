@@ -38,6 +38,28 @@ variable "applications" {
       }))
     }))
 
+    # Optional - Optional Claims (e.g. email in ID tokens)
+    optional_claims = optional(object({
+      access_token = optional(list(object({
+        name                  = string
+        source                = optional(string)
+        essential             = optional(bool, false)
+        additional_properties = optional(list(string), [])
+      })), [])
+      id_token = optional(list(object({
+        name                  = string
+        source                = optional(string)
+        essential             = optional(bool, false)
+        additional_properties = optional(list(string), [])
+      })), [])
+      saml2_token = optional(list(object({
+        name                  = string
+        source                = optional(string)
+        essential             = optional(bool, false)
+        additional_properties = optional(list(string), [])
+      })), [])
+    }))
+
     # Optional - Service Principal
     create_service_principal      = optional(bool, true)
     service_principal_description = optional(string)

@@ -77,6 +77,41 @@ resource "azuread_application" "this" {
       }
     }
   }
+
+  dynamic "optional_claims" {
+    for_each = try(each.value.optional_claims, null) != null ? [each.value.optional_claims] : []
+    content {
+      dynamic "access_token" {
+        for_each = try(optional_claims.value.access_token, [])
+        content {
+          name                  = access_token.value.name
+          source                = try(access_token.value.source, null)
+          essential             = try(access_token.value.essential, false)
+          additional_properties = try(access_token.value.additional_properties, [])
+        }
+      }
+
+      dynamic "id_token" {
+        for_each = try(optional_claims.value.id_token, [])
+        content {
+          name                  = id_token.value.name
+          source                = try(id_token.value.source, null)
+          essential             = try(id_token.value.essential, false)
+          additional_properties = try(id_token.value.additional_properties, [])
+        }
+      }
+
+      dynamic "saml2_token" {
+        for_each = try(optional_claims.value.saml2_token, [])
+        content {
+          name                  = saml2_token.value.name
+          source                = try(saml2_token.value.source, null)
+          essential             = try(saml2_token.value.essential, false)
+          additional_properties = try(saml2_token.value.additional_properties, [])
+        }
+      }
+    }
+  }
 }
 
 resource "azuread_service_principal" "this" {
