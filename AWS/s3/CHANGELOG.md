@@ -1,3 +1,8 @@
+## [2026-04-19] - Update Module Version
+
+## Changed
+- S3 bucket module wrapping `terraform-aws-modules/s3-bucket/aws` ~> 5.10.0
+
 ## [2026-04-07] - Initial Release
 
 ### Added

@@ -9,7 +9,7 @@ locals {
 
 module "api_gateway" {
   source  = "terraform-aws-modules/apigateway-v2/aws"
-  version = "~> 5.0"
+  version = "~> 6.1.0"
 
   for_each = var.apis
 

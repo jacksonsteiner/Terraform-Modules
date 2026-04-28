@@ -1,3 +1,8 @@
+## [2026-04-19] - Update Module Version
+
+## Changed
+- DynamoDB table module wrapping `terraform-aws-modules/dynamodb-table/aws` ~> 5.5.0 (latest)
+
 ## [2026-04-07] - Initial Release
 
 ### Added

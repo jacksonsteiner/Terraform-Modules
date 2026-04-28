@@ -1,3 +1,8 @@
+## [2026-04-19] - Update Module Version
+
+## Changed
+- CloudFront distribution module wrapping `terraform-aws-modules/cloudfront/aws` ~> 6.4.1 (latest)
+
 ## [2026-04-07] - Initial Release
 
 ### Added

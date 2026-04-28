@@ -9,7 +9,7 @@ locals {
 
 module "acm" {
   source  = "terraform-aws-modules/acm/aws"
-  version = "~> 5.0"
+  version = "~> 6.3.0"
 
   for_each = var.certificates
 
